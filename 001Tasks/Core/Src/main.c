@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -44,6 +45,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+
+#define DWT_CTRL (*(volatile uint32_t*)0xE0001000)
 
 /* USER CODE END PV */
 
@@ -97,6 +100,15 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
+
+  /* Enable the CYCCNT counter */
+
+  DWT_CTRL |= (1 << 0);
+
+  SEGGER_SYSVIEW_Conf();
+  SEGGER_SYSVIEW_Start();
+
+
   status = xTaskCreate(task1_handler, "Task-1", 200, "Hello world from Task-1", 2, &task1_handle);
 
   configASSERT(status == pdPASS);
@@ -104,6 +116,12 @@ int main(void)
   status = xTaskCreate(task2_handler, "Task-2", 200, "Hello world from Task-2", 2, &task2_handle);
 
   configASSERT(status == pdPASS);
+
+  //start the freeRTOS scheduler
+  vTaskStartScheduler();
+
+  //if the control comes here, then launch of the scheduler has failed due to insufficient memory in heap
+  // insufficient memory in heap
 
   /* USER CODE END 2 */
 
@@ -309,12 +327,21 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 static void task1_handler(void* parameters)
 {
+	while(1)
+	{
+		printf("%s\n",(char*) parameters);
+//		taskYIELD();
+	}
 
 }
 
 static void task2_handler(void* parameters)
 {
-
+	while(1)
+	{
+		printf("%s\n",(char*) parameters);
+//		taskYIELD();
+	}
 }
 
 
